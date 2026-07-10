@@ -1,0 +1,22 @@
+{
+  "name": "telegram-deploy-bot",
+  "version": "1.0.0",
+  "description": "Telegram bot (grammY) that runs a deploy command remotely",
+  "main": "dist/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "dev": "tsx watch index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "deploy:vercel": "vercel --prod"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "grammy": "^1.30.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "tsx": "^4.16.2",
+    "typescript": "^5.5.4"
+  }
+}
