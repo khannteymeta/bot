@@ -66,7 +66,7 @@ bot.command("deploy", async (ctx) => {
   const userId = ctx.from?.id;
 
   if (!userId || !isAuthorized(userId)) {
-    await ctx.reply("⛔ You are not authorized to run this command.");
+    await ctx.reply(`⛔ You are not authorized to run this command. (Your Telegram User ID: ${userId ?? "unknown"})`);
     return;
   }
 
