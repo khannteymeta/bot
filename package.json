@@ -11,12 +11,12 @@
     "deploy:vercel": "vercel --prod"
   },
   "dependencies": {
+    "@types/node": "^20.14.10",
     "dotenv": "^16.4.5",
-    "grammy": "^1.30.0"
+    "grammy": "^1.30.0",
+    "typescript": "^5.5.4"
   },
   "devDependencies": {
-    "@types/node": "^20.14.10",
-    "tsx": "^4.16.2",
-    "typescript": "^5.5.4"
+    "tsx": "^4.16.2"
   }
 }
