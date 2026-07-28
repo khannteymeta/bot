@@ -135,13 +135,13 @@ async function startWebhookServer() {
 
     const requestUrl = new URL(req.url, `http://${req.headers.host ?? "localhost"}`);
 
-    if (req.method === "GET" && (requestUrl.pathname === "/" || requestUrl.pathname === "/healthz")) {
+    if (req.method === "GET" && requestUrl.pathname === "/healthz") {
       res.writeHead(200, { "content-type": "text/plain" });
       res.end("ok");
       return;
     }
 
-    if (req.method === "GET" && (requestUrl.pathname === "/swagger" || requestUrl.pathname === "/docs")) {
+    if (req.method === "GET" && (requestUrl.pathname === "/" || requestUrl.pathname === "/swagger" || requestUrl.pathname === "/docs")) {
       res.writeHead(200, { "content-type": "text/html; charset=utf-8" });
       res.end(swaggerUiHtml);
       return;

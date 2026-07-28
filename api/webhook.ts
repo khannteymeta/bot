@@ -146,12 +146,12 @@ export default async function handler(req: any, res: any) {
 
   const requestUrl = new URL(req.url, `https://${req.headers.host || "example.vercel.app"}`);
 
-  if (req.method === "GET" && (requestUrl.pathname === "/" || requestUrl.pathname === "/healthz")) {
+  if (req.method === "GET" && requestUrl.pathname === "/healthz") {
     sendResponse(res, 200, "ok");
     return;
   }
 
-  if (req.method === "GET" && (requestUrl.pathname === "/swagger" || requestUrl.pathname === "/docs")) {
+  if (req.method === "GET" && (requestUrl.pathname === "/" || requestUrl.pathname === "/swagger" || requestUrl.pathname === "/docs")) {
     res.statusCode = 200;
     res.setHeader("content-type", "text/html; charset=utf-8");
     res.end(swaggerUiHtml);
