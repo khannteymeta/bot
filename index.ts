@@ -3,6 +3,7 @@ import { createServer } from "node:http";
 import { Bot, webhookCallback } from "grammy";
 import { isAuthorized } from "./auth";
 import { runDeploy, runWebhookDeploy } from "./deploy";
+import { swaggerUiHtml, openApiSpec } from "./swagger";
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
 if (!token) {
@@ -137,6 +138,18 @@ async function startWebhookServer() {
     if (req.method === "GET" && (requestUrl.pathname === "/" || requestUrl.pathname === "/healthz")) {
       res.writeHead(200, { "content-type": "text/plain" });
       res.end("ok");
+      return;
+    }
+
+    if (req.method === "GET" && (requestUrl.pathname === "/swagger" || requestUrl.pathname === "/docs")) {
+      res.writeHead(200, { "content-type": "text/html; charset=utf-8" });
+      res.end(swaggerUiHtml);
+      return;
+    }
+
+    if (req.method === "GET" && (requestUrl.pathname === "/swagger.json" || requestUrl.pathname === "/openapi.json")) {
+      res.writeHead(200, { "content-type": "application/json; charset=utf-8" });
+      res.end(JSON.stringify(openApiSpec, null, 2));
       return;
     }
 

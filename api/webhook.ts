@@ -2,6 +2,7 @@ import "dotenv/config";
 import { Bot, webhookCallback } from "grammy";
 import { isAuthorized } from "../auth";
 import { runDeploy, runWebhookDeploy } from "../deploy";
+import { swaggerUiHtml, openApiSpec } from "../swagger";
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
 if (!token) {
@@ -147,6 +148,20 @@ export default async function handler(req: any, res: any) {
 
   if (req.method === "GET" && (requestUrl.pathname === "/" || requestUrl.pathname === "/healthz")) {
     sendResponse(res, 200, "ok");
+    return;
+  }
+
+  if (req.method === "GET" && (requestUrl.pathname === "/swagger" || requestUrl.pathname === "/docs")) {
+    res.statusCode = 200;
+    res.setHeader("content-type", "text/html; charset=utf-8");
+    res.end(swaggerUiHtml);
+    return;
+  }
+
+  if (req.method === "GET" && (requestUrl.pathname === "/swagger.json" || requestUrl.pathname === "/openapi.json")) {
+    res.statusCode = 200;
+    res.setHeader("content-type", "application/json; charset=utf-8");
+    res.end(JSON.stringify(openApiSpec, null, 2));
     return;
   }
 
