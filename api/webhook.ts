@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { Bot, webhookCallback } from "grammy";
 import { isAuthorized } from "../auth";
-import { runDeploy } from "../deploy";
+import { runDeploy, runWebhookDeploy } from "../deploy";
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
 if (!token) {
@@ -25,7 +25,9 @@ async function registerCommands() {
     { command: "start", description: "Show welcome message" },
     { command: "help", description: "List available commands" },
     { command: "status", description: "Check bot uptime & server status" },
-    { command: "deploy", description: "Run the deploy command on the server" },
+    { command: "deploy", description: "Run deploy (optional: target name, e.g. komerz-frontend)" },
+    { command: "deploy_frontend", description: "Deploy komerz-frontend" },
+    { command: "deploy_backend", description: "Deploy komerz-backend" },
   ]);
 }
 
@@ -39,7 +41,9 @@ bot.command("help", async (ctx) => {
       "/start — Welcome message\n" +
       "/help — This help message\n" +
       "/status — Show bot uptime & server time\n" +
-      "/deploy — Run the configured deploy command on the server\n",
+      "/deploy [target] — Run deployment (defaults to server-configured deploy, or specify target like komerz-frontend)\n" +
+      "/deploy_frontend — Deploy komerz-frontend\n" +
+      "/deploy_backend — Deploy komerz-backend\n",
     { parse_mode: "Markdown" }
   );
 });
@@ -51,7 +55,7 @@ bot.command("status", async (ctx) => {
   );
 });
 
-bot.command("deploy", async (ctx) => {
+async function handleDeployAction(ctx: any, target?: string) {
   const userId = ctx.from?.id;
 
   if (!userId || !isAuthorized(userId)) {
@@ -59,10 +63,10 @@ bot.command("deploy", async (ctx) => {
     return;
   }
 
-  const statusMsg = await ctx.reply("🚀 Deployment started…");
+  const statusMsg = await ctx.reply(target ? `🚀 Deployment of ${target} started…` : "🚀 Deployment started…");
 
   try {
-    const output = await runDeploy();
+    const output = target ? await runWebhookDeploy(target) : await runDeploy();
     await ctx.api.editMessageText(
       ctx.chat.id,
       statusMsg.message_id,
@@ -78,6 +82,19 @@ bot.command("deploy", async (ctx) => {
       { parse_mode: "Markdown" }
     );
   }
+}
+
+bot.command("deploy", async (ctx) => {
+  const target = ctx.match?.trim() || undefined;
+  await handleDeployAction(ctx, target);
+});
+
+bot.command("deploy_frontend", async (ctx) => {
+  await handleDeployAction(ctx, "komerz-frontend");
+});
+
+bot.command("deploy_backend", async (ctx) => {
+  await handleDeployAction(ctx, "komerz-backend");
 });
 
 bot.catch((err) => {
@@ -105,6 +122,19 @@ function sendResponse(res: any, statusCode: number, body: string) {
   res.end(body);
 }
 
+async function handleHttpDeploy(target: string, res: any) {
+  try {
+    const output = await runWebhookDeploy(target);
+    res.statusCode = 200;
+    res.setHeader("content-type", "application/json; charset=utf-8");
+    res.end(JSON.stringify({ success: true, target, output }));
+  } catch (err: any) {
+    res.statusCode = 500;
+    res.setHeader("content-type", "application/json; charset=utf-8");
+    res.end(JSON.stringify({ success: false, error: err.message || String(err) }));
+  }
+}
+
 export default async function handler(req: any, res: any) {
   await ensureWebhook();
 
@@ -117,6 +147,16 @@ export default async function handler(req: any, res: any) {
 
   if (req.method === "GET" && (requestUrl.pathname === "/" || requestUrl.pathname === "/healthz")) {
     sendResponse(res, 200, "ok");
+    return;
+  }
+
+  if ((req.method === "POST" || req.method === "GET") && requestUrl.pathname === "/deploy-komerz-frontend") {
+    await handleHttpDeploy("komerz-frontend", res);
+    return;
+  }
+
+  if ((req.method === "POST" || req.method === "GET") && requestUrl.pathname === "/deploy-komerz-backend") {
+    await handleHttpDeploy("komerz-backend", res);
     return;
   }
 
